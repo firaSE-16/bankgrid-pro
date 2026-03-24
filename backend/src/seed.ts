@@ -6,8 +6,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const TOTAL_TRANSACTIONS = 500_000;
-const BATCH_SIZE = 5000;
+const TOTAL_TRANSACTIONS = 1_000;
+const BATCH_SIZE = 100;
 
 const BANKS_DATA = [
   { code: 'JPM', name: 'JPMorgan Chase & Co.', country: 'United States', swiftCode: 'CHASUS33XXX' },
@@ -163,12 +163,6 @@ async function seed() {
   console.log('Connected to database');
 
   const txRepo = ds.getRepository(Transaction);
-  const existingCount = await txRepo.count();
-  if (existingCount >= TOTAL_TRANSACTIONS) {
-    console.log(`Already have ${existingCount} transactions. Skipping seed.`);
-    await ds.destroy();
-    return;
-  }
 
   console.log('Clearing existing data...');
   await txRepo.query('TRUNCATE TABLE transactions CASCADE');
