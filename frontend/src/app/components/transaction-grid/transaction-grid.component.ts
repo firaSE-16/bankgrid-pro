@@ -120,8 +120,8 @@ ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule]);
           [maxBlocksInCache]="10"
           [animateRows]="true"
           [rowSelection]="rowSelection"
+          [getRowId]="getRowId"
           [enableCellTextSelection]="true"
-          [suppressCopyRowsToClipboard]="false"
           [multiSortKey]="'ctrl'"
           (gridReady)="onGridReady($event)"
           (sortChanged)="onSortChanged($event)"
@@ -213,7 +213,8 @@ export class TransactionGridComponent implements OnInit {
   advancedSearchItems = signal<AdvancedSearchItem[]>([]);
   aggRefreshTrigger = signal(0);
 
-  rowSelection = { mode: 'multiRow' as const };
+  rowSelection = { mode: 'multiRow' as const, copySelectedRows: true };
+  getRowId = (params: any) => String(params.data.id);
 
   gridTheme = computed(() => {
     const isDark = this.themeService.darkMode();
