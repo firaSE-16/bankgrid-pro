@@ -13,30 +13,30 @@ import { TransactionsModule } from './transactions/transactions.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const mysqlUrl = config.get<string>('MYSQL_URL') || config.get<string>('DATABASE_URL');
+        const dbUrl = config.get<string>('DATABASE_URL');
 
-        if (mysqlUrl) {
+        if (dbUrl) {
           return {
-            type: 'mysql',
-            url: mysqlUrl,
+            type: 'postgres',
+            url: dbUrl,
             entities: [Bank, Account, Transaction],
             synchronize: true,
             logging: false,
-            ssl: config.get('DB_SSL') === 'true' ? { rejectUnauthorized: false } : undefined,
-          };
+            ssl: { rejectUnauthorized: false },
+          } as any;
         }
 
         return {
-          type: 'mysql',
+          type: 'postgres',
           host: config.get('DB_HOST', 'localhost'),
-          port: config.get<number>('DB_PORT', 3306),
-          username: config.get('DB_USERNAME', 'root'),
-          password: config.get('DB_PASSWORD', 'root'),
+          port: config.get<number>('DB_PORT', 5432),
+          username: config.get('DB_USERNAME', 'postgres'),
+          password: config.get('DB_PASSWORD', 'postgres'),
           database: config.get('DB_DATABASE', 'bank_grid'),
           entities: [Bank, Account, Transaction],
           synchronize: true,
           logging: false,
-        };
+        } as any;
       },
     }),
     TransactionsModule,

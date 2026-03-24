@@ -86,7 +86,7 @@ export class TransactionsService {
     qb.select(`DISTINCT ${col}`, 'value').orderBy(col, 'ASC');
 
     if (dto.search) {
-      qb.andWhere(`${col} LIKE :search`, { search: `%${dto.search}%` });
+      qb.andWhere(`${col} ILIKE :search`, { search: `%${dto.search}%` });
     }
 
     qb.limit(500);
@@ -105,7 +105,7 @@ export class TransactionsService {
 
       const rows = await qb
         .select(bankCol, 'group')
-        .addSelect(`GROUP_CONCAT(DISTINCT ${accountCol} ORDER BY ${accountCol} ASC)`, 'items')
+        .addSelect(`STRING_AGG(DISTINCT ${accountCol}, ',' ORDER BY ${accountCol} ASC)`, 'items')
         .groupBy(bankCol)
         .orderBy(bankCol, 'ASC')
         .getRawMany();
@@ -149,7 +149,7 @@ export class TransactionsService {
         .getRawMany(),
 
       qb.clone()
-        .select("DATE_FORMAT(tx.transactionDate, '%Y-%m')", 'month')
+        .select("TO_CHAR(tx.transactionDate, 'YYYY-MM')", 'month')
         .addSelect('COUNT(*)', 'count')
         .addSelect('SUM(tx.amount)', 'volume')
         .groupBy('month')
@@ -201,13 +201,13 @@ export class TransactionsService {
         switch (filter.type) {
           case 'equals': return `${col} = :${paramKey}`;
           case 'notEqual': return `${col} != :${paramKey}`;
-          case 'contains': return `${col} LIKE :${paramKey}`;
-          case 'notContains': return `${col} NOT LIKE :${paramKey}`;
-          case 'startsWith': return `${col} LIKE :${paramKey}`;
-          case 'endsWith': return `${col} LIKE :${paramKey}`;
+          case 'contains': return `${col} ILIKE :${paramKey}`;
+          case 'notContains': return `${col} NOT ILIKE :${paramKey}`;
+          case 'startsWith': return `${col} ILIKE :${paramKey}`;
+          case 'endsWith': return `${col} ILIKE :${paramKey}`;
           case 'blank': return `${col} IS NULL OR ${col} = ''`;
           case 'notBlank': return `${col} IS NOT NULL AND ${col} != ''`;
-          default: return `${col} LIKE :${paramKey}`;
+          default: return `${col} ILIKE :${paramKey}`;
         }
 
       case 'number':
@@ -224,19 +224,19 @@ export class TransactionsService {
 
       case 'date':
         switch (filter.type) {
-          case 'equals': return `DATE(${col}) = :${paramKey}`;
-          case 'notEqual': return `DATE(${col}) != :${paramKey}`;
-          case 'greaterThan': return `DATE(${col}) > :${paramKey}`;
-          case 'lessThan': return `DATE(${col}) < :${paramKey}`;
-          case 'inRange': return `DATE(${col}) BETWEEN :${paramKey}_from AND :${paramKey}_to`;
-          default: return `DATE(${col}) = :${paramKey}`;
+          case 'equals': return `${col}::date = :${paramKey}`;
+          case 'notEqual': return `${col}::date != :${paramKey}`;
+          case 'greaterThan': return `${col}::date > :${paramKey}`;
+          case 'lessThan': return `${col}::date < :${paramKey}`;
+          case 'inRange': return `${col}::date BETWEEN :${paramKey}_from AND :${paramKey}_to`;
+          default: return `${col}::date = :${paramKey}`;
         }
 
       case 'set':
         return `${col} IN (:...${paramKey}_vals)`;
 
       default:
-        return `${col} LIKE :${paramKey}`;
+        return `${col} ILIKE :${paramKey}`;
     }
   }
 
@@ -290,12 +290,12 @@ export class TransactionsService {
 
     const term = `%${searchTerm.trim()}%`;
     qb.andWhere(
-      `(tx.reference LIKE :term OR tx.senderName LIKE :term OR tx.receiverName LIKE :term
-        OR tx.senderBank LIKE :term OR tx.receiverBank LIKE :term
-        OR tx.description LIKE :term OR tx.category LIKE :term
-        OR tx.status LIKE :term OR tx.transactionType LIKE :term
-        OR tx.currency LIKE :term OR tx.channel LIKE :term
-        OR CAST(tx.amount AS CHAR) LIKE :term)`,
+      `(tx.reference ILIKE :term OR tx.senderName ILIKE :term OR tx.receiverName ILIKE :term
+        OR tx.senderBank ILIKE :term OR tx.receiverBank ILIKE :term
+        OR tx.description ILIKE :term OR tx.category ILIKE :term
+        OR tx.status ILIKE :term OR tx.transactionType ILIKE :term
+        OR tx.currency ILIKE :term OR tx.channel ILIKE :term
+        OR CAST(tx.amount AS TEXT) ILIKE :term)`,
       { term },
     );
   }
@@ -312,7 +312,7 @@ export class TransactionsService {
           qb.andWhere(`${col} = :${pk}`, { [pk]: item.value });
           break;
         case 'contains':
-          qb.andWhere(`${col} LIKE :${pk}`, { [pk]: `%${item.value}%` });
+          qb.andWhere(`${col} ILIKE :${pk}`, { [pk]: `%${item.value}%` });
           break;
         case 'greaterThan':
           qb.andWhere(`${col} > :${pk}`, { [pk]: item.value });
@@ -327,7 +327,7 @@ export class TransactionsService {
           });
           break;
         case 'startsWith':
-          qb.andWhere(`${col} LIKE :${pk}`, { [pk]: `${item.value}%` });
+          qb.andWhere(`${col} ILIKE :${pk}`, { [pk]: `${item.value}%` });
           break;
       }
     });

@@ -134,22 +134,23 @@ function generateRef(idx: number): string {
 }
 
 async function seed() {
-  const mysqlUrl = process.env.MYSQL_URL || process.env.DATABASE_URL;
+  const dbUrl = process.env.DATABASE_URL;
 
-  const dsOptions = mysqlUrl
+  const dsOptions = dbUrl
     ? {
-        type: 'mysql' as const,
-        url: mysqlUrl,
+        type: 'postgres' as const,
+        url: dbUrl,
         entities: [Bank, Account, Transaction],
         synchronize: true,
         logging: false,
+        ssl: dbUrl.includes('render.com') ? { rejectUnauthorized: false } : undefined,
       }
     : {
-        type: 'mysql' as const,
+        type: 'postgres' as const,
         host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        username: process.env.DB_USERNAME || 'root',
-        password: process.env.DB_PASSWORD || 'root',
+        port: parseInt(process.env.DB_PORT || '5432'),
+        username: process.env.DB_USERNAME || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_DATABASE || 'bank_grid',
         entities: [Bank, Account, Transaction],
         synchronize: true,
@@ -170,11 +171,9 @@ async function seed() {
   }
 
   console.log('Clearing existing data...');
-  await ds.query('SET FOREIGN_KEY_CHECKS = 0');
-  await txRepo.clear();
-  await ds.getRepository(Account).clear();
-  await ds.getRepository(Bank).clear();
-  await ds.query('SET FOREIGN_KEY_CHECKS = 1');
+  await txRepo.query('TRUNCATE TABLE transactions CASCADE');
+  await txRepo.query('TRUNCATE TABLE accounts CASCADE');
+  await txRepo.query('TRUNCATE TABLE banks CASCADE');
 
   console.log('Seeding banks...');
   const bankRepo = ds.getRepository(Bank);

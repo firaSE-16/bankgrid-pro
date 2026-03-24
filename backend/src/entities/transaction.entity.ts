@@ -14,10 +14,10 @@ export class Transaction {
   @Column({ length: 30, unique: true })
   reference: string;
 
-  @Column({ type: 'enum', enum: ['WIRE', 'ACH', 'SWIFT', 'SEPA', 'INTERNAL', 'CHECK', 'CARD', 'FX'] })
+  @Column({ length: 20 })
   transactionType: string;
 
-  @Column({ type: 'enum', enum: ['COMPLETED', 'PENDING', 'FAILED', 'REVERSED', 'ON_HOLD', 'CANCELLED'] })
+  @Column({ length: 20 })
   status: string;
 
   @Column({ type: 'decimal', precision: 18, scale: 2 })
@@ -70,13 +70,13 @@ export class Transaction {
   @Column({ length: 60, nullable: true })
   category: string;
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'timestamp' })
   transactionDate: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   valueDate: Date;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   settlementDate: Date;
 
   @Column({ length: 60, nullable: true })

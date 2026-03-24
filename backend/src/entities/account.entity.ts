@@ -16,13 +16,13 @@ export class Account {
   @Column({ length: 3 })
   currency: string;
 
-  @Column({ type: 'enum', enum: ['SAVINGS', 'CHECKING', 'BUSINESS', 'INVESTMENT', 'TRUST'] })
+  @Column({ length: 20 })
   accountType: string;
 
   @Column({ type: 'decimal', precision: 18, scale: 2, default: 0 })
   balance: number;
 
-  @Column({ type: 'enum', enum: ['ACTIVE', 'CLOSED', 'FROZEN', 'DORMANT'], default: 'ACTIVE' })
+  @Column({ length: 20, default: 'ACTIVE' })
   status: string;
 
   @ManyToOne(() => Bank, (bank) => bank.accounts)
